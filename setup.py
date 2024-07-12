@@ -1,4 +1,10 @@
 from setuptools import setup, find_packages
+import os
+
+long_description = ''
+if os.path.exists('README.md'):
+    with open('README.md', 'r', encoding='utf-8') as f:
+        long_description = f.read()
 
 setup(
     name='movie_analyzer',
@@ -15,15 +21,15 @@ setup(
         ],
     },
     author='Kacper Zieniuk',
-    author_email='ka.zieniuk@gmail.com',
-    description='Movie analysis project for NPD',
-    long_description=open('README.md').read(),
+    author_email='kz430642@students.mimum.edu.pl',
+    description='NPD project',
+    long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/qwert1410/npd_project',
+    url='https://github.com/qwert1410/npd_project/',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6', 
+    python_requires='>=3.6',
 )
