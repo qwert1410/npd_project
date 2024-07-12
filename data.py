@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-#Add yaml with paths to macro data in a file
 
 mapping = {
     'US':'EN',

@@ -1,21 +1,21 @@
 import argparse
 import numpy as np
 import pandas as pd
-from data import Data
+from data import Data  # Assuming this is a custom module you've created
 import matplotlib.pyplot as plt
 from IPython.display import display, HTML
 
 def main(args):
     test = Data(
-        args[0],
-        args[1],
-        args[2],
-        args[3],
-        args[4],
-        args[5],
-        args[6],
-        args[7],
-        args[8],
+        args.titles_akas,
+        args.gdp,
+        args.population,
+        args.mapping,
+        args.title_ratings,
+        args.title_basics,
+        args.start_year,
+        args.end_year,
+        args.world,
     )
 
     test.get_region()
@@ -35,6 +35,7 @@ def main(args):
                     (x['numVotes'] > 10_000) & 
                     (x['titleType'].isin(['movie']))
                     ].groupby('regionName')['averageRating'].apply(lambda x: x.nlargest(20).mean()).sort_values()
+    
     # Task 2
     ranking = test.titles.groupby('regionName').agg({'gdp':'mean', 'population':'mean', 'gdp_pc':'mean', 'numVotes':'sum'})
     ranking = ranking.join(best_movies_5).dropna()
@@ -112,15 +113,15 @@ def main(args):
     <img src="polish_movies_analysis.png" alt="Polish Movies Analysis">
     """
     try:
-        f = open('results.html', 'w') 
-        f.write(html_output)
-        f.close()
+        with open('results.html', 'w') as f:
+            f.write(html_output)
         print('The results have been saved successfully. You can find them as results.html. The plots are saved as polish_movies_analysis.png')
-    except:
-        print('Issues while saving to html.')
-    test = input('Do you want to view the results in the command line? (Y/N)')
-    if test == 'Y':
-        print('Best regions by top 55, 10, 20 movies')
+    except Exception as e:
+        print(f'Issues while saving to html: {e}')
+    
+    view_results = input('Do you want to view the results in the command line? (Y/N)')
+    if view_results.upper() == 'Y':
+        print('Best regions by top 5, 10, 20 movies')
         display(best_movies_5.tail(20).to_frame().round(2))
         display(best_movies_10.tail(20).to_frame().round(2))
         display(best_movies_20.tail(20).to_frame().round(2))
@@ -152,16 +153,18 @@ def main(args):
 
         plt.tight_layout()
         plt.show()
+
 if __name__ == "__main__":
-    args = [
-        'Data/title.akas.tsv',
-        'World_Bank_Data/gdp.csv',
-        'World_Bank_Data/population.csv',
-        'World_Bank_Data/code_mapping.csv',
-        'Data/title.ratings.tsv',
-        'Data/title.basics.tsv',
-        1900,
-        2000,
-        True
-    ]
+    parser = argparse.ArgumentParser(description="Analyze movie data")
+    parser.add_argument('--titles_akas', type=str, required=True, help='Path to title.akas.tsv')
+    parser.add_argument('--title_ratings', type=str, required=True, help='Path to title.ratings.tsv')
+    parser.add_argument('--title_basics', type=str, required=True, help='Path to title.basics.tsv')
+    parser.add_argument('--start_year', type=int, required=True, help='Starting year')
+    parser.add_argument('--end_year', type=int, required=True, help='Ending year')
+    parser.add_argument('--gdp', type=str, default='World_Bank_Data/gdp.csv', help='Path to gdp file')
+    parser.add_argument('--population', type=str, default='World_Bank_Data/population.csv', help='Path to population file')
+    parser.add_argument('--mapping', type=str, default='World_Bank_Data/code_mapping.csv', help='Path to mapping')
+    parser.add_argument('--world', type=bool, default=True, help='Flag for including world region')
+
+    args = parser.parse_args()
     main(args)
