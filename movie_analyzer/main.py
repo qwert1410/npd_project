@@ -7,7 +7,7 @@ from IPython.display import display, HTML
 
 def main(args):
     test = Data(
-        args.titles_akas,
+        args.title_akas,
         args.gdp,
         args.population,
         args.mapping,
@@ -156,7 +156,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze movie data")
-    parser.add_argument('--titles_akas', type=str, required=True, help='Path to title.akas.tsv')
+    parser.add_argument('--title_akas', type=str, required=True, help='Path to title.akas.tsv')
     parser.add_argument('--title_ratings', type=str, required=True, help='Path to title.ratings.tsv')
     parser.add_argument('--title_basics', type=str, required=True, help='Path to title.basics.tsv')
     parser.add_argument('--start_year', type=int, required=True, help='Starting year')
