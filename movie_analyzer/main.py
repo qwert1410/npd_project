@@ -109,8 +109,9 @@ def main(args):
     The original title.akas table had {test.akas_length} rows with {test.unique_movies_length} unique movies. After processing, {test.found_region_length} movie titles were given a region. The others
     are assumed to be international production and have flag 'World' if --world=True. Table title.basics have {test.basics_length} rows and title.ratings have {test.ratings_length} rows.
     After joining all the necessary tables we get {test.titles_length}. rows for the analysis. Below w show the columns with the most NaN values.
+    As we can see most movies do not have a rating, so they are left outside the analysis.
     </p>
-    {test.titles.isna().mean().sort_values()}
+    {test.titles.isna().mean().sort_values().to_html()}
     <h1>Best Movies by Region</h1>
 
     <h2>Top 5 movies from each region<h2>
