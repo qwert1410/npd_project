@@ -19,27 +19,38 @@ def main(args):
     )
 
     test.get_region()
-    test.get_macro()
+    test.get_macro(str(args.macro_year))
     test.join_data()
 
     # Task 1
-    best_movies_5 = test.titles.loc[lambda x: 
-                    (x['numVotes'] > 10_000) & 
-                    (x['titleType'].isin(['movie']))
-                    ].groupby('regionName')['averageRating'].apply(lambda x: x.nlargest(5).mean()).sort_values()
-    best_movies_10 = test.titles.loc[lambda x: 
-                    (x['numVotes'] > 10_000) & 
-                    (x['titleType'].isin(['movie']))
-                    ].groupby('regionName')['averageRating'].apply(lambda x: x.nlargest(10).mean()).sort_values()
-    best_movies_20 = test.titles.loc[lambda x: 
-                    (x['numVotes'] > 10_000) & 
-                    (x['titleType'].isin(['movie']))
-                    ].groupby('regionName')['averageRating'].apply(lambda x: x.nlargest(20).mean()).sort_values()
-    
+    best_movies_5 = (
+        test.titles.loc[lambda x: (x['numVotes'] > 10_000) & (x['titleType'].isin(['movie']))]
+        .groupby('regionName')['averageRating']
+        .apply(lambda x: x.nlargest(5).mean())
+        .sort_values()
+    )
+    best_movies_10 = (
+        test.titles.loc[lambda x: (x['numVotes'] > 10_000) & (x['titleType'].isin(['movie']))]
+        .groupby('regionName')['averageRating']
+        .apply(lambda x: x.nlargest(10).mean())
+        .sort_values()
+    )
+    best_movies_20 = (
+        test.titles.loc[lambda x: (x['numVotes'] > 10_000) & (x['titleType'].isin(['movie']))]
+        .groupby('regionName')['averageRating']
+        .apply(lambda x: x.nlargest(20).mean())
+        .sort_values()
+    )
+
     # Task 2
-    ranking = test.titles.groupby('regionName').agg({'gdp':'mean', 'population':'mean', 'gdp_pc':'mean', 'numVotes':'sum'})
+    ranking = test.titles.groupby('regionName').agg({
+        'gdp': 'mean', 
+        'population': 'mean', 
+        'gdp_pc': 'mean', 
+        'numVotes': 'sum'
+    })
     ranking = ranking.join(best_movies_5).dropna()
-    ranking = ranking.rank(ascending=False) 
+    ranking = ranking.rank(ascending=False)
 
     ranking['weak_impact_gdp'] = ranking['numVotes'] - ranking['gdp']
     ranking['weak_impact_population'] = ranking['numVotes'] - ranking['population']
@@ -50,7 +61,9 @@ def main(args):
     ranking['strong_impact_gdp_pc'] = ranking['averageRating'] - ranking['gdp_pc']
 
     # Task 3
-    polish_movies = test.titles.loc[lambda x: (x['regionName'] == 'Poland') & (x['titleType'] == 'movie') & (x['numVotes'] > 3_000)].copy()
+    polish_movies = test.titles.loc[
+        lambda x: (x['regionName'] == 'Poland') & (x['titleType'] == 'movie') & (x['numVotes'] > 3_000)
+    ].copy()
     polish_comedies = polish_movies.dropna(subset=['genres'])
     polish_comedies = polish_comedies.loc[polish_comedies.genres.str.contains('Comedy')].copy()
 
@@ -69,7 +82,7 @@ def main(args):
         .plot(ax=axes[1], title='Average rating of comedies from each year', legend=False)).set_xlabel('Year')
     else:
         axes[1].text(0.5, 0.5, 'No data', fontsize=20, ha='center')
-        axes[1].set_title('Average rating of five best comedies from each year')
+        axes[1].set_title('Average rating of comedies from each year')
 
     plt.tight_layout()
     plt.savefig('polish_movies_analysis.png')
@@ -165,6 +178,7 @@ if __name__ == "__main__":
     parser.add_argument('--population', type=str, default='World_Bank_Data/population.csv', help='Path to population file')
     parser.add_argument('--mapping', type=str, default='World_Bank_Data/code_mapping.csv', help='Path to mapping')
     parser.add_argument('--world', type=bool, default=True, help='Flag for including world region')
+    parser.add_argument('--macro_year', type=int, default=2022, help='Year for the macro  data (GDP and population)')
 
     args = parser.parse_args()
     main(args)
