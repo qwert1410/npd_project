@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import pandas as pd
-from data import Data  # Assuming this is a custom module you've created
+from data import Data
 import matplotlib.pyplot as plt
 from IPython.display import display, HTML
 
@@ -23,6 +23,7 @@ def main(args):
     test.join_data()
 
     # Task 1
+    # In this task we get the best movies that have more than 10k votes on imdb and find the best regions.
     best_movies_5 = (
         test.titles.loc[lambda x: (x['numVotes'] > 10_000) & (x['titleType'].isin(['movie']))]
         .groupby('regionName')['averageRating']
@@ -43,24 +44,31 @@ def main(args):
     )
 
     # Task 2
+    # In this task we utilize the ranking of movies from task 1. We compare the movies ranking, total number of votes 
+    # with the ranking of GDP, population and GDP per capita
+
     ranking = test.titles.groupby('regionName').agg({
         'gdp': 'mean', 
         'population': 'mean', 
         'gdp_pc': 'mean', 
-        'numVotes': 'sum'
+        'numVotes': 'sum',
     })
     ranking = ranking.join(best_movies_5).dropna()
     ranking = ranking.rank(ascending=False)
 
-    ranking['weak_impact_gdp'] = ranking['numVotes'] - ranking['gdp']
-    ranking['weak_impact_population'] = ranking['numVotes'] - ranking['population']
-    ranking['weak_impact_gdp_pc'] = ranking['numVotes'] - ranking['gdp_pc']
+    ranking['weak_impact_gdp'] = ranking['gdp'] - ranking['numVotes']
+    ranking['weak_impact_population'] = ranking['population'] - ranking['numVotes']
+    ranking['weak_impact_gdp_pc'] = ranking['gdp_pc'] - ranking['numVotes']
 
-    ranking['strong_impact_gdp'] = ranking['averageRating'] - ranking['gdp']
-    ranking['strong_impact_population'] = ranking['averageRating'] - ranking['population']
-    ranking['strong_impact_gdp_pc'] = ranking['averageRating'] - ranking['gdp_pc']
+    ranking['strong_impact_gdp'] = ranking['gdp'] - ranking['averageRating']
+    ranking['strong_impact_population'] = ranking['population'] - ranking['averageRating']
+    ranking['strong_impact_gdp_pc'] = ranking['gdp_pc'] - ranking['averageRating']
 
     # Task 3
+    # In this task we try to analyze how the polish movies changed through the years
+    # We try to find the answer to question whether polsih movies become worse as the time progresses
+    # At the same time, we verify if the comedies become any better
+
     polish_movies = test.titles.loc[
         lambda x: (x['regionName'] == 'Poland') & (x['titleType'] == 'movie') & (x['numVotes'] > 3_000)
     ].copy()
@@ -94,9 +102,15 @@ def main(args):
         Certain countries are joined as regions. These are English speaking region, Spanish speaking region,
         German speaking region, Portuguese speaking region. 
         If for some movie, the country of origin was not to be found, it was categorised as international production. 
-        If you do not want to see this region in analysis, use flag --world=False.
+        If you do not want to see this region in analysis, use flag --world=False. For different year of macro data use flag --macro_year.
     </p>
-
+    <h1>Data handling</h1>
+    <p>
+    The original title.akas table had {test.akas_length} rows with {test.unique_movies_length} unique movies. After processing, {test.found_region_length} movie titles were given a region. The others
+    are assumed to be international production and have flag 'World' if --world=True. Table title.basics have {test.basics_length} rows and title.ratings have {test.ratings_length} rows.
+    After joining all the necessary tables we get {test.titles_length}. rows for the analysis. Below w show the columns with the most NaN values.
+    </p>
+    {test.titles.isna().mean().sort_values()}
     <h1>Best Movies by Region</h1>
 
     <h2>Top 5 movies from each region<h2>
@@ -108,19 +122,19 @@ def main(args):
     
     <h1>Best Movie Makers by Weak Impact</h1>
     <h2>Vs GDP<h2>
-    {ranking.sort_values('weak_impact_gdp')[-5:][['weak_impact_gdp']].round(2).to_html()}
+    {ranking.sort_values('weak_impact_gdp')[-5:][['weak_impact_gdp', 'numVotes', 'gdp']].round(2).to_html()}
     <h2>Vs Population<h2>
-    {ranking.sort_values('weak_impact_population')[-5:][['weak_impact_population']].to_html()}
+    {ranking.sort_values('weak_impact_population')[-5:][['weak_impact_population', 'numVotes', 'population']].to_html()}
     <h2>Vs GDP per capita<h2>
-    {ranking.sort_values('weak_impact_gdp_pc')[-5:][['weak_impact_gdp_pc']].to_html()}
+    {ranking.sort_values('weak_impact_gdp_pc')[-5:][['weak_impact_gdp_pc', 'numVotes', 'gdp_pc']].to_html()}
     
-    <h1>Best Movie Makers by Strong Impact</h1>
+    <h1>Best Movie Makers by Strong Impact (higher place is worse)</h1>
     <h2>Vs GDP<h2>
-    {ranking.sort_values('strong_impact_gdp')[-5:][['strong_impact_gdp']].to_html()}
+    {ranking.sort_values('strong_impact_gdp')[-5:][['strong_impact_gdp', 'averageRating', 'gdp']].to_html()}
     <h2>Vs Population<h2>
-    {ranking.sort_values('strong_impact_population')[-5:][['strong_impact_population']].to_html()}
+    {ranking.sort_values('strong_impact_population')[-5:][['strong_impact_population', 'averageRating', 'population']].to_html()}
     <h2>Vs GDP per capita<h2>
-    {ranking.sort_values('strong_impact_gdp')[-5:][['strong_impact_gdp_pc']].to_html()}
+    {ranking.sort_values('strong_impact_gdp')[-5:][['strong_impact_gdp_pc', 'averageRating', 'gdp_pc']].to_html()}
 
     <h1>Polish Movies Analysis</h1>
     <img src="polish_movies_analysis.png" alt="Polish Movies Analysis">
